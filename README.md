@@ -1,14 +1,4 @@
-# App name
+# Youtube Comments
 
-[brief description of the app]
+Grab all comments from youtube video and create new tickets for them in zendesk support
 
-### The following information is displayed:
-
-* info1
-* info2
-* info3
-
-Please submit bug reports to [Insert Link](). Pull requests are welcome.
-
-### Screenshot(s):
-[put your screenshots down here.]

@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <h1>
+        hi this is my modal show
+    </h1>
+    My Modal
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+    <script>
+    var client = ZAFClient.init()
+    client.invoke('resize', { width: '100%', height: '200px' })
+
+    client.on(
+      'parent_client_guid',
+      (data) => {
+        console.log("Modal's parent GUID is:", data)
+        let parentClient = client.instance(data)
+        // Send stuff back to parent
+        parentClient.trigger('stuff_from_modal', '{"item1":1, "item2":"my string"}')
+      }
+    )
+
+    </script>
+</body>
+</html>

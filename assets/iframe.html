@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@zendeskgarden/css-bedrock@7.0,npm/@zendeskgarden/css-buttons@6.0,npm/@zendeskgarden/css-forms@6.0" type="text/css">
+        <!--<link rel="stylesheet" href="styles.css" type="text/css">-->
+        
+    </head>
+    <body>
+        <section data-main>Loading...</section>
+        <!-- https://github.com/zendesk/zendesk_app_framework_sdk -->
+        <script type="text/javascript" src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <style>
+            .modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                z-index: 1050;
+                overflow: auto;
+                width: 800px !important;
+                height: 700px !important;
+                margin: -250px 0 0 -280px;
+                background-color: #FFF;
+                border: 1px solid rgba(0, 0, 0, 0.3);
+                border-radius: 6px;
+                box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+                background-clip: padding-box;
+            }
+        </style>
+        <style>
+            .modal.in.modal-resizable {
+                width: 800px !important;
+                height: 700px !important;
+                transform: translate(-50%, -50%);
+                margin: 0;
+            }
+        </style>
+        <script>
+            // Initialise the Zendesk JavaScript API client
+            // https://developer.zendesk.com/apps/docs/apps-v2
+            var client = ZAFClient.init();
+            var domain = "";
+            domain = document.referrer;
+            //console.log(sub);
+          //  domain = getParameterByName("origin", sub);
+           // console.log(urlParm);
+          //  domain = urlParm.split('.')[0];
+            console.log(domain);
+            client.on('ticket.save', function (data) {
+                return client.get(['ticket.comment.text', 'ticket.id']).then(function (data) {
+                    //var myObj = data;
+                    console.log("entered save ticket");
+                    var tid, comnt = "";
+                    for (x in data) {
+                        if (x == "ticket.comment.text") {
+                            comnt = data[x];
+                        } else if (x == "ticket.id") {
+                            tid = data[x];
+                        }
+                        // console.log(data[x]);
+                    }
+                    var result = "";
+                    var parm = {};
+                    parm.tickitId = tid;
+                    parm.comment = comnt;
+                    parm.DomainName = domain;
+                    $.ajax({
+                        url: "https://zendeskapplications.com/Home/PostToYouTube",
+                      //  url: "https://localhost:44349/Home/PostToYouTube",
+                        type: "POST",
+                        data: parm,
+                        headers: {
+                            'Access-Control-Allow-Origin': '*',
+                        },
+                        success: function (data) {
+                            result = data();
+                            console.log(data);
+                        },
+                    });
+                    console.log(result);
+                });
+                return true;
+            });
+            function init(location) {
+                location === 'modal' ? new ModalApp() : new TicketApp();
+            }
+
+            function mainEl() {
+                return document.querySelector('section[data-main]');
+            }
+
+            function replaceLineBreaks(str) {
+                return str.replace(/(?:\r\n|\r|\n)/g, '<br />');
+            }
+
+            var TicketApp = function () {
+                var text = localStorage.getItem('modalText') || '';
+                this.render(replaceLineBreaks(text));
+            };
+
+            TicketApp.prototype = {
+                render: function (text) {
+                    if (!this.inDOM) {
+                        mainEl().innerHTML = '<p id="text">' + text + '<p><button class="edit c-btn"> Register your channel</button>';
+                        document.querySelector('.edit').addEventListener('click', this.openModal.bind(this));
+                        this.inDOM = true;
+                    } else {
+                        document.querySelector('#text').innerText = text;
+                    }
+                    this.resize();
+                },
+
+                resize: function () {
+                    var sectionHeight = mainEl().getBoundingClientRect().height;
+                    client.invoke('resize', { height: sectionHeight });
+                },
+
+                openModal: function () {
+                    var self = this;
+                    return client.invoke('instances.create', {
+                        location: 'modal',
+                        url: 'assets/iframe.html',
+                        size: { width: '600px', height: '800px' }
+                    }).then(function (data) {
+                        var instanceGuid = data['instances.create'][0].instanceGuid;
+                        var modalClient = client.instance(instanceGuid);
+                        modalClient.on('modal.save', function (data) {
+                            self.render(data.text);
+                        });
+                    });
+                }
+            };
+
+            var ModalApp = function () {
+                this.render(localStorage.getItem('modalText') || '');
+            };
+
+            ModalApp.prototype = {
+                render: function (text) {
+                    var text = localStorage.getItem('modalText') || '';
+                    //mainEl().innerHTML = '<form id="modal"><textarea class="c-txt__input c-txt__input--area">' + text + '</textarea><br><button class="c-btn" type="submit">Save</button></form>';
+                    mainEl().innerHTML = '<div id="modal" class="modalSiz"><iframe src="https://zendeskapplications.com/Home/Register" height="800px" width="800px"></iframe> </div>';
+                    document.querySelector('#modal').addEventListener('submit', this.onModalSubmit.bind(this));
+
+                },
+
+                onModalSubmit: function (evt) {
+                    var textareaValue = evt.target.querySelector('textarea').value;
+                    evt.preventDefault();
+                    localStorage.setItem('modalText', textareaValue);
+                    client.trigger('modal.save', { text: textareaValue });
+                    client.invoke('destroy');
+                }
+            };
+
+            client.on('app.registered', function (data) {
+                init(data.context.location);
+            });
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
+        </script>
+
+    </body>
+ </html>

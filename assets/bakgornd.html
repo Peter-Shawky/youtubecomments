@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@zendeskgarden/css-bedrock@7.0,npm/@zendeskgarden/css-buttons@6.0,npm/@zendeskgarden/css-forms@6.0" type="text/css">
+    <link rel="stylesheet" href="styles.css" type="text/css">-->
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <script type="text/javascript" src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+        var DebugUrl = "https://localhost:44349/Home/Videos";
+        var ReleaseUrl = "https://zendeskapplications.com/Home/Videos";
+        var domain = "";
+        $(function () {
+            /* Start check for new YouTube Tickets */
+            console.log("service is running in background");
+            /* Call /Home/VideoComments */
+            /* get the subdomain */
+            domain = document.referrer;
+            importAccountTickets(domain);
+            setInterval(function () { importAccountTickets(domain); }, 420000)
+          
+            });
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        function importAccountTickets(subdomain) {
+            var parm = {};
+            parm.DomainName = subdomain;
+            $.ajax({
+                url: ReleaseUrl,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                },
+                data:parm,
+                type: "GET",
+                success: function (data) {
+                    console.log("Ticktets start importing");
+                }
+
+            })
+        }
+      
+    </script>
+</body>
+</html>
